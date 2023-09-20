@@ -27,7 +27,7 @@ The needed packages are in the file 'install_image_recognition.sh'.
 $ conda activate for_image_recognition
 ```
 
-- Run the script
+## Run the script
 
 ```bash
 python binary_classification.py
