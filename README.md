@@ -1,19 +1,17 @@
 # Image_recognition
 
-Python script for binary classification of images. It has several options. 
+Python script for binary image classification. It has several options. 
 
-First, it may search through the known Keras structure of NeuralNetworks, such as Xception, ResNet, Inception, ConvNeXt, and more. 
+First, it can search the known structures of Keras NeuralNetworks, such as Xception, ResNet, Inception, ConvNeXt, and more. 
+The pre-training-based system takes the best architecture and trains it longer.
 
-A system based on preliminary training gets the best architecture and trains it longer. 
+You can also choose a specific architecture and train only on it.
 
-You can also choose a particular architecture and train only on this one.
+What's more, you can choose to use data augmentation, which can increase the size of the training dataset by multiplying and slightly changing images.
 
-Moreover, you can choose if you want to use data augmentation, which may increase training dataset size, by multiplication and small changes of images.
+By default, the script divides two folders (=two class) of images into training, test, and validation sets (80:10:10 ratio). You need to set the names of the folders.
 
-By default, the script divides two folders of images into training, test, and validation sets (80:10:10 ratio).
-You need to set the names of folders.
-
-As a user, you can change also other parameters such as batch_size, learning rate, and type of optimizer. 
+You can also change other parameters, such as batch_size, learning speed, and optimizer type.
 
 
 ## Installation of environment
@@ -35,7 +33,7 @@ python binary_classification.py
 ```
 
 ## Images
-I copy images from  
+I copy the images from  
 
 https://www.kaggle.com/datasets/tawsifurrahman/covid19-radiography-database
 
