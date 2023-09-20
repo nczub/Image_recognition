@@ -1,0 +1,23 @@
+Model: "sequential"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ xception (Functional)       (None, 6, 6, 2048)        20861480  
+                                                                 
+ global_average_pooling2d_4   (None, 2048)             0         
+ (GlobalAveragePooling2D)                                        
+                                                                 
+ dense_8 (Dense)             (None, 256)               524544    
+                                                                 
+ batch_normalization_309 (Ba  (None, 256)              1024      
+ tchNormalization)                                               
+                                                                 
+ dropout_4 (Dropout)         (None, 256)               0         
+                                                                 
+ dense_9 (Dense)             (None, 2)                 514       
+                                                                 
+=================================================================
+Total params: 21,387,562
+Trainable params: 21,332,522
+Non-trainable params: 55,040
+_________________________________________________________________
