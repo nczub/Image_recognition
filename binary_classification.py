@@ -161,19 +161,21 @@ print("test_Y shape", testY.shape)
 print("validation_X shape", validationX.shape)
 print("validation_Y shape", validationY.shape)
 
+
+
 train_df = pd.concat([pd.DataFrame(trainX), pd.DataFrame(trainY)], axis = 1)
 train_df.columns = ["Image_array", "Image_Path", "class_0", "class_1"]
-train_df['Label'] = train_df.apply(lambda row: f'{class_0}' if row['class_0'] == 0 else 'Normal' if row['class_0'] == 1 else row[f'{class_1}'], axis=1)
+train_df['Label'] = train_df['class_0'].apply(lambda x: class_0 if x == 0 else class_1)
 train_df.to_csv(f"{folder_name}/train_dataset.csv", index = False, header = True)
 
 test_df = pd.concat([pd.DataFrame(testX), pd.DataFrame(testY)], axis = 1)
 test_df.columns = ["Image_array", "Image_Path", "class_0", "class_1"]
-test_df['Label'] = test_df.apply(lambda row: f'{class_0}' if row['class_0'] == 0 else 'Normal' if row['class_0'] == 1 else row[f'{class_1}'], axis=1)
+test_df['Label'] = test_df['class_0'].apply(lambda x: class_0 if x == 0 else class_1)
 test_df.to_csv(f"{folder_name}/test_dataset.csv", index = False, header = True)
 
 validation_df = pd.concat([pd.DataFrame(validationX), pd.DataFrame(validationY)], axis = 1)
 validation_df.columns = ["Image_array", "Image_Path", "class_0", "class_1"]
-validation_df['Label'] = validation_df.apply(lambda row: f'{class_0}' if row['class_0'] == 0 else 'Normal' if row['class_0'] == 1 else row[f'{class_1}'], axis=1)
+validation_df['Label'] = validation_df['class_0'].apply(lambda x: class_0 if x == 0 else class_1)
 validation_df.to_csv(f"{folder_name}/validation_dataset.csv", index = False, header = True)
 
 
