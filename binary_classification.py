@@ -72,7 +72,7 @@ optimizer = 'adam'
 # number of classes for classification model
 number_of_classes = 2
 # gridsearch through neuralnetworks: option True or False, if False you need to choose which neural network will be basic model
-NN_gridsearch = True
+NN_gridsearch = False
 base_model_chosen = 'Xception'
 
 
@@ -82,7 +82,7 @@ final_dropout = 0.1
 class_0 = "Viral_Pneumonia"
 class_1 = "Normal"
 
-path_of_images = r'/data1/dane/image_recognition/ankle_classification/github_20_09_2023'
+path_of_images = r'/data1/dane/image_recognition/ankle_classification/github_20_09_2023/Data'
 
 
 # DO NOT CHANGE
@@ -94,7 +94,6 @@ for dirname, _, filenames in os.walk(path_of_images):
         if (filename[-3:] == 'png'):
             imagePaths.append(os.path.join(dirname, filename))
             
-           
 
 todays_date = date.today()
 folder_name = f"result_{todays_date}_dataAug_{data_augmentation}_NNgrids_{NN_gridsearch}_imgsize_{resize}_epochs_{final_epochs}_batchsize_{batch_size}"
@@ -102,6 +101,8 @@ os.mkdir(folder_name)
 
 Data = []
 Target = []
+Data_name = []
+all_data = []
 cat = {class_0: class_0, class_1: class_1}
 
 for imagePath in tqdm(imagePaths):
@@ -109,10 +110,12 @@ for imagePath in tqdm(imagePaths):
     image = cv2.imread(imagePath)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image = cv2.resize(image, (resize, resize)) /255
-
+    Data_name.append((image, imagePath))
     Data.append(image)
     Target.append(cat[label])
+    all_data.append((imagePath, label))
 
+    
     
 df = pd.DataFrame(Target,columns=['Labels'])
 plt.figure(figsize=(8,6))
@@ -137,15 +140,13 @@ le = LabelEncoder()
 labels = le.fit_transform(Target)
 labels = to_categorical(labels)
 
-
-(x_train, x_test, y_train, y_test) = train_test_split(Data, labels,test_size=test_size ,
+(x_train, x_test, y_train, y_test) = train_test_split(Data_name, labels,test_size=test_size ,
                                                       stratify=labels,random_state=random_state)
 
 (x_train_main, x_validation, y_train_main, y_validation) = train_test_split(x_train, y_train, test_size=validation_size,
                                                       stratify=y_train,random_state=random_state)
 
-# CHANGES OF IMAGES' SIZE
-s = resize
+# # CHANGES OF IMAGES' SIZE
 trainX = np.array(x_train_main)
 testX = np.array(x_test)
 trainY = np.array(y_train_main)
@@ -160,6 +161,34 @@ print("test_Y shape", testY.shape)
 print("validation_X shape", validationX.shape)
 print("validation_Y shape", validationY.shape)
 
+train_df = pd.concat([pd.DataFrame(trainX), pd.DataFrame(trainY)], axis = 1)
+train_df.columns = ["Image_array", "Image_Path", "class_0", "class_1"]
+train_df['Label'] = train_df.apply(lambda row: f'{class_0}' if row['class_0'] == 0 else 'Normal' if row['class_0'] == 1 else row[f'{class_1}'], axis=1)
+train_df.to_csv(f"{folder_name}/train_dataset.csv", index = False, header = True)
+
+test_df = pd.concat([pd.DataFrame(testX), pd.DataFrame(testY)], axis = 1)
+test_df.columns = ["Image_array", "Image_Path", "class_0", "class_1"]
+test_df['Label'] = test_df.apply(lambda row: f'{class_0}' if row['class_0'] == 0 else 'Normal' if row['class_0'] == 1 else row[f'{class_1}'], axis=1)
+test_df.to_csv(f"{folder_name}/test_dataset.csv", index = False, header = True)
+
+validation_df = pd.concat([pd.DataFrame(validationX), pd.DataFrame(validationY)], axis = 1)
+validation_df.columns = ["Image_array", "Image_Path", "class_0", "class_1"]
+validation_df['Label'] = validation_df.apply(lambda row: f'{class_0}' if row['class_0'] == 0 else 'Normal' if row['class_0'] == 1 else row[f'{class_1}'], axis=1)
+validation_df.to_csv(f"{folder_name}/validation_dataset.csv", index = False, header = True)
+
+
+(x_train, x_test, y_train, y_test) = train_test_split(Data, labels,test_size=test_size ,
+                                                      stratify=labels,random_state=random_state)
+
+(x_train_main, x_validation, y_train_main, y_validation) = train_test_split(x_train, y_train, test_size=validation_size,
+                                                      stratify=y_train,random_state=random_state)
+
+trainX = np.array(x_train_main)
+testX = np.array(x_test)
+trainY = np.array(y_train_main)
+testY = np.array(y_test)
+validationX = np.array(x_validation)
+validationY = np.array(y_validation)
 
 # DATA AUGMENTATION
 train_datagen = ImageDataGenerator(
@@ -172,7 +201,7 @@ train_datagen = ImageDataGenerator(
         vertical_flip = True,
         fill_mode="nearest")
 
-train_generator = train_datagen.flow(trainX, trainY, batch_size=batch_size_generator)
+train_generator = train_datagen.flow(np.array(trainX), trainY, batch_size=batch_size_generator)
 
 # MODEL CREATION - neural networks limited by keras distribution
 # as next step add NNs like: googlenet, alexnet, lenet, 
@@ -276,34 +305,76 @@ save_model(model, f"{folder_name}/model_{todays_date}.h5")
 
 # PREDICTIONS WITH TEST SET
 modelLoss, modelAccuracy = model.evaluate(testX, testY, verbose=0)
-
 print('Test Loss is {}'.format(modelLoss))
 print('Test Accuracy is {}'.format(modelAccuracy))
-
-class_names = [f'{class_0}',f'{class_1}']
+class_names = ['class_0','class_1']
 y_pred = model.predict(testX)
-
-
 y_test_df = pd.DataFrame(y_test)
 y_pred_df = pd.DataFrame(y_pred.round(3))
 y_test_df.columns = class_names
-y_test_df.columns = [str(col) + '_true' for col in y_test_df.columns]
-
-y_pred_df.columns = class_names
+y_test_df['True_Label'] = y_test_df['class_0'].apply(lambda x: class_0 if x == 0 else class_1)
+y_pred_df.columns = ["probability_class_0", "probability_class_1"]
 y_pred_df.columns = [str(col) + '_pred' for col in y_pred_df.columns]
-
 predictions = pd.concat([y_test_df, y_pred_df], axis = 1)
 predictions.to_csv(f"{folder_name}/test_set_predictions.csv", index = False, header = True)
-
-
+test_set_name = pd.read_csv(f"{folder_name}/test_dataset.csv")
+test_all_info = pd.concat([test_set_name, predictions], axis = 1)
+test_all_info.to_csv(f"{folder_name}/test_set_summary.csv", index = False, header = True)
 plt.figure(figsize=(8,8))
 x = confusion_matrix(testY.argmax(axis=1),y_pred.argmax(axis=1))
 Confusion_Matrix = pd.DataFrame(x, index=class_names, columns=class_names)
-
 sns.set(font_scale=1.5, color_codes=True, palette='deep')
 sns.heatmap(Confusion_Matrix, annot=True, annot_kws={'size':10}, fmt='d', cmap="crest")
-
 plt.ylabel("Actual")
 plt.xlabel("Predicted")
 plt.title(f'Confusion Matrix  - Test set - Accuracy: {round(modelAccuracy,3)}')
 plt.savefig(f"{folder_name}/confusion_matrix_test_set.png")
+
+
+
+# Get prediction for training set
+y_pred = model.predict(trainX)
+y_train_df = pd.DataFrame(y_train_main)
+y_pred_df = pd.DataFrame(y_pred.round(3))
+y_train_df.columns = class_names
+y_train_df['True_Label'] = y_train_df['class_0'].apply(lambda x: class_0 if x == 0 else class_1)
+y_pred_df.columns = ["probability_class_0", "probability_class_1"]
+y_pred_df.columns = [str(col) + '_pred' for col in y_pred_df.columns]
+predictions = pd.concat([y_train_df, y_pred_df], axis = 1)
+predictions.to_csv(f"{folder_name}/train_set_predictions.csv", index = False, header = True)
+train_set_name = pd.read_csv(f"{folder_name}/train_dataset.csv")
+train_all_info = pd.concat([train_set_name, predictions], axis = 1)
+train_all_info.to_csv(f"{folder_name}/train_set_summary.csv", index = False, header = True)
+plt.figure(figsize=(8,8))
+x = confusion_matrix(trainY.argmax(axis=1),y_pred.argmax(axis=1))
+Confusion_Matrix = pd.DataFrame(x, index=class_names, columns=class_names)
+sns.set(font_scale=1.5, color_codes=True, palette='deep')
+sns.heatmap(Confusion_Matrix, annot=True, annot_kws={'size':10}, fmt='d', cmap="crest")
+plt.ylabel("Actual")
+plt.xlabel("Predicted")
+plt.title(f'Confusion Matrix  - Train set - Accuracy: {round(modelAccuracy,3)}')
+plt.savefig(f"{folder_name}/confusion_matrix_train_set.png")
+
+
+# Get prediction for validation set
+y_pred = model.predict(validationX)
+y_validation_df = pd.DataFrame(y_validation)
+y_pred_df = pd.DataFrame(y_pred.round(3))
+y_validation_df.columns = class_names
+y_validation_df['True_Label'] = y_validation_df['class_0'].apply(lambda x: class_0 if x == 0 else class_1)
+y_pred_df.columns = ["probability_class_0", "probability_class_1"]
+y_pred_df.columns = [str(col) + '_pred' for col in y_pred_df.columns]
+predictions = pd.concat([y_validation_df, y_pred_df], axis = 1)
+predictions.to_csv(f"{folder_name}/validation_set_predictions.csv", index = False, header = True)
+validation_set_name = pd.read_csv(f"{folder_name}/validation_dataset.csv")
+validation_all_info = pd.concat([validation_set_name, predictions], axis = 1)
+validation_all_info.to_csv(f"{folder_name}/validation_set_summary.csv", index = False, header = True)
+plt.figure(figsize=(8,8))
+x = confusion_matrix(validationY.argmax(axis=1),y_pred.argmax(axis=1))
+Confusion_Matrix = pd.DataFrame(x, index=class_names, columns=class_names)
+sns.set(font_scale=1.5, color_codes=True, palette='deep')
+sns.heatmap(Confusion_Matrix, annot=True, annot_kws={'size':10}, fmt='d', cmap="crest")
+plt.ylabel("Actual")
+plt.xlabel("Predicted")
+plt.title(f'Confusion Matrix  - Validation set - Accuracy: {round(modelAccuracy,3)}')
+plt.savefig(f"{folder_name}/confusion_matrix_validation_set.png")
