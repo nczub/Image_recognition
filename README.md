@@ -11,7 +11,7 @@ What's more, you can choose to use data augmentation, which can increase the siz
 
 By default, the script divides two folders (=two class) of images into training, test, and validation sets (80:10:10 ratio). You need to set the names of the folders.
 
-You can also change other parameters, such as batch_size, learning speed, and optimizer type.
+You can also change other parameters, such as batch_size, learning rate, and optimizer type.
 
 
 ## Installation of environment
