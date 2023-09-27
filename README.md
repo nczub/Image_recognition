@@ -9,7 +9,7 @@ You can also choose a specific architecture and train only on it.
 
 What's more, you can choose to use data augmentation, which can increase the size of the training dataset by multiplying and slightly changing images.
 
-By default, the script divides two folders (=two class) of images into training, test, and validation sets (80:10:10 ratio). You need to set the names of the folders.
+By default, the script divides two folders (=two classes) of images into training, test, and validation sets (80:10:10 ratio). You need to set the names of the folders.
 
 You can also change other parameters, such as batch_size, learning rate, and optimizer type.
 
